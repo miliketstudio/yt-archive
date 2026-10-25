@@ -1,0 +1,5 @@
+yt-dlp[default]
+firebase-admin
+img2pdf
+python-pptx
+numpy
