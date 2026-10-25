@@ -1,0 +1,59 @@
+name: Process video
+
+on:
+  workflow_dispatch:
+    inputs:
+      job_id:
+        description: "Job ID (any unique text when testing, e.g. test1)"
+        required: true
+      url:
+        description: "YouTube video URL"
+        required: true
+      mode:
+        description: "What to produce"
+        type: choice
+        options: [both, slides, video]
+        default: both
+      sensitivity:
+        description: "Screen-change threshold (lower = more frames)"
+        default: "3.0"
+      max_frames:
+        description: "Maximum number of frames"
+        default: "300"
+
+permissions:
+  contents: write
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Install Python packages
+        run: pip install -r scripts/requirements.txt
+
+      - name: Process video
+        run: python scripts/process.py
+        env:
+          JOB_ID: ${{ inputs.job_id }}
+          URL: ${{ inputs.url }}
+          MODE: ${{ inputs.mode }}
+          SENSITIVITY: ${{ inputs.sensitivity }}
+          MAX_FRAMES: ${{ inputs.max_frames }}
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          YT_COOKIES: ${{ secrets.YT_COOKIES }}
